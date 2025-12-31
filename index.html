@@ -26,6 +26,34 @@ html,body{
   background:rgba(0,0,0,0.65); /* ⭐ 数值越大越暗 */
   pointer-events:none;
 }
+.start-screen{
+  position:fixed;
+  inset:0;
+  z-index:100000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,0.6);
+}
+
+.start-btn{
+  padding:24px 48px;
+  font-size:32px;
+  color:#fff;
+  border:2px solid #fff;
+  border-radius:12px;
+  cursor:pointer;
+  letter-spacing:4px;
+  background:rgba(0,0,0,0.4);
+  box-shadow:0 0 30px rgba(255,200,100,0.6);
+  transition:all .3s;
+}
+
+.start-btn:hover{
+  transform:scale(1.1);
+  box-shadow:0 0 50px rgba(255,220,150,1);
+}
+
 </style>
 
 </head>
@@ -35,13 +63,9 @@ html,body{
 <canvas id="canvas" style="position:absolute;width:100%;height:100%;z-index:8888" width="1357" height="954"></canvas>
 <canvas style="position:absolute;width:100%;height:100%;z-index:9999" class="canvas" width="1357" height="954"></canvas>
 <audio id="bgm" src="music/bgm.mp3" loop preload="auto"></audio>
-<div id="startBtn"
-     style="
-       position:fixed;
-       inset:0;
-       z-index:100000;
-       cursor:pointer;
-     ">
+
+<div id="startBtn" class="start-screen">
+  <div class="start-btn">🎆 小虾邀您点击进入 🎆</div>
 </div>
 
 <div class="overlay">
@@ -55,6 +79,7 @@ html,body{
   </div>
 </div>
 <script>
+let started = false; // ⭐ 是否已进入
 function initVars(){
 
 	pi=Math.PI;
@@ -321,6 +346,11 @@ function draw(){
 }
 
 function frame(){
+
+	if (!started) {
+		requestAnimationFrame(frame);
+		return;
+	}
 
 	if(frames>100000){
 		seedTimer=0;
@@ -998,8 +1028,11 @@ S.Shape = (function () {
   }
 }());
 
+function startCountdown() {
+  S.init();
+}
 
-S.init();
+// S.init();
 const bgImages = [
   'images/bg1.jpg',
   'images/bg2.jpg',
@@ -1026,29 +1059,49 @@ const bg = document.getElementById('bg-slideshow');
 bg.style.backgroundImage = `url(${bgImages[0]})`;
 bg.style.opacity = 1;
 
-// 每 1 秒切换一张
-setInterval(() => {
-  bg.style.opacity = 0;
-  setTimeout(() => {
-    bgIndex = (bgIndex + 1) % bgImages.length;
-    bg.style.backgroundImage = `url(${bgImages[bgIndex]})`;
-    bg.style.opacity = 1;
-  }, 300); // 300ms 后切换图片
-}, 1000); // ⭐ 1 秒一张
+function startBackground() {
+  setInterval(() => {
+    bg.style.opacity = 0;
+    setTimeout(() => {
+      bgIndex = (bgIndex + 1) % bgImages.length;
+      bg.style.backgroundImage = `url(${bgImages[bgIndex]})`;
+      bg.style.opacity = 1;
+    }, 300);
+  }, 1000);
+}
 
 let bgm = document.getElementById('bgm');
 let startBtn = document.getElementById('startBtn');
 
 startBtn.addEventListener('click', () => {
+
+  // ① 打开总开关（烟花）
+  started = true;
+
+  // startBackground();
+  // startCountdown();
+
+  // ② 启动背景轮播
+  startBackground();
+
+  // ③ 启动倒计时
+  startCountdown();
+
+  // ④ 2 秒后播放音乐
+  setTimeout(() => {
   bgm.volume = 0.6;
   bgm.play();
-  startBtn.remove(); // 播放后移除点击层
+  }, 2000);
+
+  // ⑤ 移除遮罩
+  startBtn.remove();
 });
 
 
 
-</script>
 
+
+</script>
 
 
 
